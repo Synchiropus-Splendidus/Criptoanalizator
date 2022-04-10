@@ -1,4 +1,5 @@
 package com.company;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,106 +12,111 @@ public class Scrambler {
             'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', '.', ',',
             ':', '-', '!', '?'};
 
+    //массив букв по частоте использования
     private final char[] LETTERFREQUENCY = {'о', 'е', 'а', 'и', 'н', 'т', 'с', 'р', 'в', 'л', 'к', 'м', 'д', 'п', 'у',
             'я', 'ы', 'ь', 'г', 'з', 'б', 'ч', 'й', 'х', 'ж', 'ш', 'ю', 'ц', 'щ', 'э', 'ф', 'ъ', 'ё'};
 
-    private int SHIFT;
+    private int key;
 
-    public Scrambler(int SHIFT) {
-        if (SHIFT > ALPHABET.length - 1 || SHIFT < -ALPHABET.length - 1) {
-            this.SHIFT = Math.abs(SHIFT % (ALPHABET.length - 1));
+    private final String keyValue = "Значение ключа: ";
+
+    public Scrambler(int key) {
+        if (key > ALPHABET.length - 1 || key < -ALPHABET.length - 1) {
+            this.key = Math.abs(key % (ALPHABET.length - 1));
         } else {
-            this.SHIFT = Math.abs(SHIFT);
+            this.key = Math.abs(key);
         }
     }
 
-    public int getVariation() {
+    //получение количества возможных вариантов
+    public int getValueOfVariations() {
         return ALPHABET.length;
     }
 
-    public String code(String text) {
-        StringBuilder codedResult = new StringBuilder();
-        String textToCode = text.toLowerCase();
-        for (char letter : textToCode.toCharArray()) {
+    //метод для шифрования текста согласно выбранного ключа
+    public String toEncryptText(String incomingText) {
+        StringBuilder encryptedText = new StringBuilder();
+        String textToEncrypt = incomingText.toLowerCase();
+        for (char letter : textToEncrypt.toCharArray()) {
             for (int i = 0; i < ALPHABET.length; i++) {
                 if (letter == ALPHABET[i]) {
-                    int newLetterNumber = i + SHIFT;
+                    int newLetterNumber = i + key;
                     if (newLetterNumber >= ALPHABET.length) {
                         newLetterNumber -= ALPHABET.length;
                     }
-                    codedResult.append(ALPHABET[newLetterNumber]);
+                    encryptedText.append(ALPHABET[newLetterNumber]);
                 } else if (letter == ' ') {
-                    codedResult.append(' ');
+                    encryptedText.append(' ');
                     break;
                 }
             }
         }
-        return codedResult.toString();
+        return encryptedText.toString();
     }
 
-    public String unCode(String text) {
-        StringBuilder unCodedResult = new StringBuilder();
-        String textToCode = text.toLowerCase();
-        for (char letter : textToCode.toCharArray()) {
+    //метод расшифровывает текст используя ключь
+    public String toDecryptText(String incomingText) {
+        StringBuilder decryptedText = new StringBuilder();
+        String textToDecrypt = incomingText.toLowerCase();
+        for (char letter : textToDecrypt.toCharArray()) {
             for (int i = 0; i < ALPHABET.length; i++) {
                 if (letter == ALPHABET[i]) {
-                    int newLetterNumber = i - SHIFT;
+                    int newLetterNumber = i - key;
                     if (newLetterNumber < 0) {
                         newLetterNumber += ALPHABET.length;
                     } else if (newLetterNumber >= ALPHABET.length) {
                         newLetterNumber -= ALPHABET.length;
                     }
-                    unCodedResult.append(ALPHABET[newLetterNumber]);
+                    decryptedText.append(ALPHABET[newLetterNumber]);
                 } else if (letter == ' ') {
-                    unCodedResult.append(' ');
+                    decryptedText.append(' ');
                     break;
                 }
             }
         }
-        return unCodedResult.toString();
+        return decryptedText.toString();
     }
 
-    public String unCodeManualBruteForce(String text, int newShift) {
-        SHIFT = newShift;
-        return unCode(text);
+    //метод расшифровывает текст вручную - каждый раз увеличивает значение ключа на 1
+    public String unCodeManualBruteForce(String incomingText, int newKey) {
+        key = newKey;
+        return toDecryptText(incomingText);
     }
 
-    public String BruteForce(String text) {
-        //работает при наличии знаков припинания
-        SHIFT = 1;
-        Character[] simbols = {'.', ';', ',', ':'};
+    //метод расшифровывает текст, подбирая ключь. Работает при наличии знаков припинания.
+    public String encryptTextWithBruteForce(String incomingText) {
+        Character[] symbols = {'.', ';', ',', ':', '!', '?'};//задаем символы, которые должны быть в конце слова
         boolean onAction = true;
-        String uncodedText = unCode(text); //раскодируем текст
+        String decryptedText = toDecryptText(incomingText); //раскодируем текст
         while (onAction) {
-            List<String> words = List.of(uncodedText.split(" "));//делим на слова
-            for (int a = 0; a < simbols.length; a++) {// проверяем на наличие символа в середине слова
-                for (int i = 0; i < words.size(); i++) {
-                    String uncodedWord = words.get(i);
-                    for (int j = 0; j < uncodedWord.length() - 1; j++) {
-                        if (uncodedWord.charAt(j) == simbols[a]) {
-                            SHIFT++;
-                            i = words.size();
-                            a = simbols.length;
-                            break;
+            List<String> words = List.of(decryptedText.split(" "));//делим текст на слова
+            label:
+            for (Character symbol : symbols) {// проверяем на наличие символа в середине слова
+                for (String decryptedWord : words) {
+                    for (int j = 0; j < decryptedWord.length() - 1; j++) {
+                        if (decryptedWord.charAt(j) == symbol) {
+                            key++;
+                            break label;
                         }
-                        if (uncodedWord.charAt((uncodedWord.length() - 1)) == simbols[a]) {
+                        if (decryptedWord.charAt((decryptedWord.length() - 1)) == symbol) {
                             onAction = false;
                         }
                     }
                 }
             }
-            uncodedText = unCode(text);
+            decryptedText = toDecryptText(incomingText);
         }
-        System.out.printf("Сдвиг: %d.\n", SHIFT);
-        return uncodedText;
+        System.out.println(keyValue + key);
+        return decryptedText;
     }
 
-    public String codeHackWithFrequenceAnalize(String text, int count) {
+    //расшифровывает текст при помощи анализа текста
+    public String toDecryptTextWithTextAnalysis(String incomingText, int key) {
         //определение буквы с самой большой частотой
         TreeMap<Character, Integer> letterFrequencyInText = new TreeMap<>();
         for (char letterInAlphabet : ALPHABET) {
             int letterFrequency = 0;
-            for (char letter : text.toLowerCase().toCharArray()) {
+            for (char letter : incomingText.toLowerCase().toCharArray()) {
                 if (letter == letterInAlphabet) {
                     letterFrequency++;
                 }
@@ -126,50 +132,48 @@ public class Scrambler {
                 maxFrequency = entry.getValue();
             }
         }
-        //System.out.println(letterFrequencyInText);
-        //определение сдвига
-        int numberInAlphabet = 0;
-        int numberAfterShift = 0;
+
+        //определение ключа
+        int letterNumberInAlphabet = 0;
+        int letterNumberAfterKeyUse = 0;
         for (int y = 0; y < ALPHABET.length; y++) {
-            if (LETTERFREQUENCY[count] == ALPHABET[y]) {
-                numberInAlphabet = y;
+            if (LETTERFREQUENCY[key] == ALPHABET[y]) {
+                letterNumberInAlphabet = y;
             } else if (ALPHABET[y] == letterWithMaxFrequency) {
-                numberAfterShift = y;
+                letterNumberAfterKeyUse = y;
             }
         }
-        SHIFT = numberAfterShift - numberInAlphabet;
-        System.out.printf("Велечина сдвига: %d\n", SHIFT);
-        return unCode(text);
+        this.key = letterNumberAfterKeyUse - letterNumberInAlphabet;
+        System.out.println(keyValue + this.key);
+        return toDecryptText(incomingText);
     }
 
-    public String codeHackWithTextAnalize(String textExample, String textToUncode, int count) {
-        //Анализ примера текста на часто встречащую букву
-        TreeMap<Integer, Character> letterFrequencyInExample = new TreeMap<>();
+    //расшифровывает текст при помощи анализа образца похожего текста
+    public String textDecryptWithSampleTextAnalysis(String textSample, String incomingText, int key) {
+        //Анализ образца текста на часто встречащую букву
+        TreeMap<Integer, Character> letterFrequencyInSampleText = new TreeMap<>();
         for (char letterInAlphabet : ALPHABET) {
             int letterFrequency = 0;
-            for (char letterInExample : textExample.toLowerCase().toCharArray()) {
+            for (char letterInExample : textSample.toLowerCase().toCharArray()) {
                 if (letterInExample == letterInAlphabet) {
                     letterFrequency++;
                 }
             }
-            letterFrequencyInExample.put(letterFrequency, letterInAlphabet);
+            letterFrequencyInSampleText.put(letterFrequency, letterInAlphabet);
         }
-        List<Character> exampleletterFrequency = new ArrayList<>(letterFrequencyInExample.values());
-
-        System.out.println("пример" + letterFrequencyInExample);
+        List<Character> sampleLetterFrequency = new ArrayList<>(letterFrequencyInSampleText.values());
 
         //Подсчет наиболее часто встречающейся буквы в шифрованной части
         TreeMap<Character, Integer> letterFrequencyInText = new TreeMap<>();
         for (char letterInAlphabet : ALPHABET) {
             int letterFrequency = 0;
-            for (char letter : textToUncode.toLowerCase().toCharArray()) {
+            for (char letter : incomingText.toLowerCase().toCharArray()) {
                 if (letter == letterInAlphabet) {
                     letterFrequency++;
                 }
             }
             letterFrequencyInText.put(letterInAlphabet, letterFrequency);
         }
-        System.out.println("TEXT:" + letterFrequencyInText);
 
         int maxFrequency = 0;
         char letterWithMaxFrequency = ' ';
@@ -179,19 +183,20 @@ public class Scrambler {
                 maxFrequency = entry.getValue();
             }
         }
-        //Определение сдвига
+
+        //Определение ключа
         int numberInAlphabet = 0;
-        int numberAfterShift = 0;
+        int numberAfterKey = 0;
         for (int i = 0; i < ALPHABET.length; i++) {
-            if (exampleletterFrequency.get(exampleletterFrequency.size() - 1 - count) == ALPHABET[i]) {
+            if (sampleLetterFrequency.get(sampleLetterFrequency.size() - 1 - key) == ALPHABET[i]) {
                 numberInAlphabet = i;
             } else if (letterWithMaxFrequency == ALPHABET[i]) {
-                numberAfterShift = i;
+                numberAfterKey = i;
             }
         }
-        SHIFT = numberAfterShift - numberInAlphabet;
-        System.out.printf("Велечина сдвига: %d\n", SHIFT);
-        return unCode(textToUncode);
+        this.key = numberAfterKey - numberInAlphabet;
+        System.out.println(keyValue + this.key);
+        return toDecryptText(incomingText);
     }
 }
 

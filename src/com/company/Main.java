@@ -10,7 +10,12 @@ public class Main {
     private static Scrambler scrambler;
 
     public static void main(String[] args) {
-        // write your code here
+        String keyValue = "Введите значение ключа.";
+        String resultDestination = "Записать текст в файл?\n\t1-да;\n\t2-нет.";
+        String fileName = "Введите название файла";
+        String errorMessage = "Вы ввели неправильные данные!";
+
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Добро пожеловать в программу \"КРИПТОАНАЛИЗАТОР\". \nВыберите режим работы:");
         System.out.println("""
@@ -27,96 +32,96 @@ public class Main {
         //Режимы работы программы
         switch (mode) {
             case 1 -> {
-                System.out.println("Введите велечину сдвига.");
+                System.out.println(keyValue);
                 try {
-                    int shift = Integer.parseInt(reader.readLine());
-                    scrambler = new Scrambler(shift);
-                    String result = scrambler.code(textSourceChoose());
-                    System.out.printf("Результат шифрования (сдвиг %d):\n\t%s\n", shift, result);
-                    System.out.println("Записать текст в файл?\n\t1-да;\n\t2-нет.");
+                    int key = Integer.parseInt(reader.readLine());
+                    scrambler = new Scrambler(key);
+                    String encryptedText = scrambler.toEncryptText(textSourceChoose());
+                    System.out.printf("Результат шифрования (ключь %d):\n\t%s\n", key, encryptedText);
+                    System.out.println(resultDestination);
                     int choose = optionChoose();
                     if (choose == 1) {
-                        System.out.println("Введите название файла");
-                        writeText(result, reader.readLine());
+                        System.out.println(fileName);
+                        writeText(encryptedText, reader.readLine());
                     }
                 } catch (IOException e) {
-                    System.err.println("Вы ввели неправильные данные!");
+                    System.err.println(errorMessage);
                 }
             }
 
             case 2 -> {
-                System.out.println("Введите велечину сдвига.");
+                System.out.println(keyValue);
                 try {
                     int shift = Integer.parseInt(reader.readLine());
                     scrambler = new Scrambler(shift);
                     System.out.println("Введите текст для расшифровки.");
                     String text = textSourceChoose();
-                    String result = scrambler.unCode(text);
-                    System.out.printf("Результат дешифрования (сдвиг %d):\n\t%s\n", shift, result);
-                    System.out.println("Записать текст в файл?\n\t1-да;\n\t2-нет.");
+                    String decryptedText = scrambler.toDecryptText(text);
+                    System.out.printf("Результат дешифрования (ключь %d):\n\t%s\n", shift, decryptedText);
+                    System.out.println(resultDestination);
                     int choose = optionChoose();
                     if (choose == 1) {
-                        System.out.println("Введите название файла");
-                        writeText(result, reader.readLine());
+                        System.out.println(fileName);
+                        writeText(decryptedText, reader.readLine());
                     }
                 } catch (IOException e) {
-                    System.err.println("Вы ввели неправильные данные!");
+                    System.err.println(errorMessage);
                 }
             }
             case 3 -> {
-                System.out.println("Введите предпологаемую велечину сдвига.");
+                System.out.println("Введите предпологаемую велечину ключа.");
                 try {
-                    int newShift = Integer.parseInt(reader.readLine());
-                    scrambler = new Scrambler(newShift);
+                    int newKey = Integer.parseInt(reader.readLine());
+                    scrambler = new Scrambler(newKey);
                     System.out.println("Введите текст для расшифровки.");
                     String text = textSourceChoose();
-                    System.out.printf("Начинаю взлом кода при помощи мануального перебора, всего - %d вариантов.\n", scrambler.getVariation());
+                    System.out.printf("Начинаю взлом кода при помощи мануального перебора, всего - %d вариантов.\n", scrambler.getValueOfVariations());
                     boolean onAction = true;
                     String result = null;
                     while (onAction) {
-                        result = scrambler.unCodeManualBruteForce(text, newShift);
-                        System.out.printf("Результат: сдвиг - %d\n \t %s \nПопытаться ещё раз? \n \t 1-да;\n\t 2-нет.\n",
-                                newShift, result);
+                        result = scrambler.unCodeManualBruteForce(text, newKey);
+                        System.out.printf("Результат: ключь - %d\n \t %s \nПопытаться ещё раз? \n \t 1-да;\n\t 2-нет.\n",
+                                newKey, result);
                         int choose = optionChoose();
                         if (choose == 1) {
-                            newShift++;
+                            newKey++;
                         } else {
                             onAction = false;
                         }
                     }
-                    System.out.println("Записать текст в файл?\n\t1-да;\n\t2-нет.");
+                    System.out.println(resultDestination);
                     int select = optionChoose();
                     if (select == 1) {
-                        System.out.println("Введите название файла");
+                        System.out.println(fileName);
                         writeText(result, reader.readLine());
                     }
                 } catch (IOException e) {
-                    System.err.println("Вы ввели неправильные данные!");
+                    System.err.println(errorMessage);
                 }
             }
 
             case 4 -> {
                 scrambler = new Scrambler(0);
                 System.out.println("Введите текст для расшифровки.");
-                String textToUncode = textSourceChoose();
+                String textToDecrypt = textSourceChoose();
                 System.out.println("Начинаю взлом кода.\n \tРезультат:");
                 boolean onAction = true;
-                int count = 0;
+                int key = 0;
                 String result = null;
                 while (onAction) {
-                    result = scrambler.codeHackWithFrequenceAnalize(textToUncode, count);
+                    result = scrambler.toDecryptTextWithTextAnalysis(textToDecrypt, key);
                     System.out.printf("Результат:\n \t %s \nПопытаться ещё раз? \n \t 1-да;\n\t 2-нет.\n", result);
                     int choose = optionChoose();
                     if (choose == 1) {
-                        count++;
+                        key++;
                     } else {
                         onAction = false;
                     }
                 }
-                System.out.println("Записать текст в файл?\n\t1-да;\n\t2-нет.");
+                System.out.println(resultDestination);
                 int select = optionChoose();
                 if (select == 1) {
-                    System.out.println("Введите название файла");
+                    System.out.println(fileName);
                     try {
                         writeText(result, reader.readLine());
                     } catch (IOException e) {
@@ -130,16 +135,16 @@ public class Main {
                 System.out.println("Введите пример текста");
                 String textExample = textSourceChoose();
                 System.out.println("Введите текст для расшифровки.");
-                String textToUncode = textSourceChoose();
+                String textToDecrypt = textSourceChoose();
                 System.out.println("Начинаю взлом кода.\n \tРезультат:");
                 boolean onAction = true;
-                int count = 0;
+                int key = 0;
                 while (onAction) {
                     System.out.printf("Результат:\n \t %s \nПопытаться ещё раз? \n \t 1-да;\n\t 2-нет.\n",
-                            scrambler.codeHackWithTextAnalize(textExample, textToUncode, count));
+                            scrambler.textDecryptWithSampleTextAnalysis(textExample, textToDecrypt, key));
                     int choose = optionChoose();
                     if (choose == 1) {
-                        count++;
+                        key++;
                     } else {
                         onAction = false;
                     }
@@ -150,11 +155,11 @@ public class Main {
                 try {
                     scrambler = new Scrambler(0);
                     System.out.println("Введите текст для расшифровки.");
-                    String text = textSourceChoose();
+                    String textToEncrypt = textSourceChoose();
                     boolean onAction = true;
                     String result = null;
                     while (onAction) {
-                        result = scrambler.BruteForce(text);
+                        result = scrambler.encryptTextWithBruteForce(textToEncrypt);
                         System.out.printf("Результат: \n\t%s \nПопытаться ещё раз? \n \t 1-да;\n\t 2-нет.\n", result);
                         int choose = optionChoose();
                         if (choose == 2) {
@@ -162,28 +167,30 @@ public class Main {
                         }
                     }
 
-                    System.out.println("Записать текст в файл?\n\t1-да;\n\t2-нет.");
+                    System.out.println(resultDestination);
                     int select = optionChoose();
                     if (select == 1) {
-                        System.out.println("Введите название файла");
+                        System.out.println(fileName);
                         writeText(result, reader.readLine());
                     }
                 } catch (IOException e) {
-                    System.err.println("Вы ввели неправильные данные!");
+                    System.err.println(errorMessage);
                 }
 
             }
+            case 7 -> System.out.println("Выход.");
         }
     }
 
+    //выбор режима работы программы
     public static int optionChoose() {
-        int choose = 5;
+        int choose = 7;
         boolean onAction = true;
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         while (onAction) {
             try {
                 choose = Integer.parseInt(reader.readLine());
-                if (choose > 0 && choose < 7) {
+                if (choose > 0 && choose < 8) {
                     onAction = false;
                 } else {
                     throw new IOException();
@@ -218,7 +225,7 @@ public class Main {
             }
             PrintWriter writer = new PrintWriter(file);
             writer.write(text);
-            System.out.println("Done.");
+            System.out.println("Файл записан.");
             writer.close();
         } catch (
                 IOException e) {
